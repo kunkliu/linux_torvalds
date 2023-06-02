@@ -1,0 +1,116 @@
+
+#参考文章：
+https://zhuanlan.zhihu.com/p/384520773
+
+#内核下载：
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+git tag | grep v5.10
+git checkout v5.10
+
+git push origin v5.10-lk
+
+#编译工具链下载：
+sudo apt install gcc-aarch64-linux-gnu -y
+aarch64-linux-gnu-gcc -v
+gcc version 6.2.1 20161016 (Linaro GCC 6.2-2016.11)
+
+#编译内核：
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- all -j16
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- Image -j16
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- uImage -j16
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules -j16
+
+make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- clean
+
+#qemu下载：（暂时未用）
+git clone https://gitlab.com/qemu-project/qemu.git
+cd qemu
+git submodule init
+git submodule update --recursive
+./configure （未编译成功）
+make
+
+#qemu版本：
+qemu-system-aarch64 -version
+QEMU emulator version 4.2.1 (Debian 1:4.2-3ubuntu6.24)
+
+#内核启动命令：
+# qemu-system-aarch64 -machine virt -cpu cortex-a57 -machine type=virt \
+#           -m 1024 -smp 4 -kernel kernel/linux/arch/arm64/boot/Image --append "noinitrd root=/dev/vda rw console=ttyAMA0 loglevel=8"  -nographic \
+#           -dtb kernel/linux/arch/arm64/boot/dts/arm/vexpress-v2p-ca9.dtb    \
+#           -drive if=none,file=rootfs_ext4.img,format=raw,id=hd0 \
+#           -device virtio-blk-device,drive=hd0 \
+#           --fsdev local,id=kmod_dev,path=$PWD/kmodules,security_model=none \
+#           -device virtio-9p-device,fsdev=kmod_dev,mount_tag=kmod_mount
+
+qemu-system-aarch64 -machine virt -cpu cortex-a57 -machine type=virt \
+          -m 1024 -smp 4 -kernel arch/arm64/boot/Image --append "noinitrd root=/dev/vda rw console=ttyAMA0 loglevel=8"  -nographic \
+          -drive if=none,file=kmodules/rootfs_ext4.img,format=raw,id=hd0 \
+          -device virtio-blk-device,drive=hd0 \
+          --fsdev local,id=kmod_dev,path=$PWD/kmodules,security_model=none \
+          -device virtio-9p-device,fsdev=kmod_dev,mount_tag=kmod_mount
+
+# qemu-system-aarch64 -machine virt -cpu cortex-a57 -machine type=virt  \
+#           -m 1024 -smp 4 -kernel arch/arm64/boot/Image --append "noinitrd root=/dev/vda rw console=ttyAMA0 loglevel=8" 
+#           -drive if=none,file=rootfs.ext4,id=hd0 -device virtio-blk-device,drive=hd0 -netdev tap,ifname=eth0,script=/etc/qemu-ifup,id=eth0 
+#           -device virtio-net-device,netdev=eth0 -nographic
+
+
+#qemu停止命令：
+Ctrl + A; X
+QEMU: Terminated
+
+ps -a | grep qemu-system-arm | awk '{print $1}' | xargs sudo kill -9
+
+#busybox 下载：
+https://busybox.net/downloads/busybox-1.33.1.tar.bz2
+
+#busybox 编译
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+make menuconfig
+#Setting --->
+#     [*] Build static binary(no shared libs)
+make 
+make install
+
+#文件系统制作：
+mkdir -p kmodules //创建共享文件夹
+dd if=/dev/zero of=rootfs_ext4.img bs=1M count=64 //制作164M的磁盘
+mkfs.ext4 rootfs_ext4.img
+mkdir -p tmpfs
+sudo mount -t ext4 rootfs_ext4.img tmpfs/
+sudo cp -af rootfs/* tmpfs/
+sudo umount tmpfs
+rm -rf tmpfs kmodules
+chmod 777 rootfs_ext4.img
+
+#########################################################################
+
+# 启动  vexpress-a9 开发板
+make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm vexpress_defconfig 
+make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm Image -j16
+
+qemu-system-arm -M vexpress-a9 -m 512M -kernel arch/arm/boot/zImage -dtb  arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
+
+qemu-system-arm -M vexpress-a9  \
+        -m 512M \
+        -kernel linux_torvalds/arch/arm/boot/zImage   \
+        -dtb linux_torvalds/arch/arm/boot/dts/vexpress-v2p-ca9.dtb    \
+        -nographic  -append "console=ttyAMA0" \
+	-initrd rootfs_ext4.img -append "console=ttyAMA0 root=/dev/ram0 console=ttyAMA0 init=/linuxrc"
+
+
+# buildroot  vexpress-a9 开发板
+https://blog.csdn.net/birencs/article/details/126666827
+
+# 编译buildroot
+make qemu_arm_vexpress_defconfig
+make -j4
+
+qemu-system-arm -M vexpress-a9 -m 512M -kernel arch/arm/boot/zImage -dtb  arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
+qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb -append "root=/dev/mmcblk0 console=tty0 init=/linuxrc" -nographic -sd rootfs.ext2
+qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb -nographic -sd rootfs.img -append "root=/dev/mmcblk0 console=ttyAMA0 init=/linuxrc"
