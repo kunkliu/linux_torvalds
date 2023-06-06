@@ -89,19 +89,34 @@ rm -rf tmpfs kmodules
 chmod 777 rootfs_ext4.img
 
 #########################################################################
+#########################################################################
+#########################################################################
+#########################################################################
 
 # 启动  vexpress-a9 开发板
 make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm vexpress_defconfig 
+make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm menuconfig 
 make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm Image -j16
+make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm -j16
+
+#busybox 编译
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabi-
+make menuconfig
+#Setting --->
+#     [*] Build static binary(no shared libs)
+make 
+make install
 
 qemu-system-arm -M vexpress-a9 -m 512M -kernel arch/arm/boot/zImage -dtb  arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
 
+# 可以运行：
 qemu-system-arm -M vexpress-a9  \
         -m 512M \
-        -kernel linux_torvalds/arch/arm/boot/zImage   \
-        -dtb linux_torvalds/arch/arm/boot/dts/vexpress-v2p-ca9.dtb    \
+        -kernel arch/arm/boot/zImage   \
+        -dtb arch/arm/boot/dts/vexpress-v2p-ca9.dtb    \
         -nographic  -append "console=ttyAMA0" \
-	-initrd rootfs_ext4.img -append "console=ttyAMA0 root=/dev/ram0 console=ttyAMA0 init=/linuxrc"
+	-sd kmodules/rootfs_ext4_arm.img -append "console=ttyAMA0 root=/dev/mmcblk0 console=ttyAMA0 init=/linuxrc"
 
 
 # buildroot  vexpress-a9 开发板
@@ -113,4 +128,4 @@ make -j4
 
 qemu-system-arm -M vexpress-a9 -m 512M -kernel arch/arm/boot/zImage -dtb  arch/arm/boot/dts/vexpress-v2p-ca9.dtb -nographic -append "console=ttyAMA0"
 qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb -append "root=/dev/mmcblk0 console=tty0 init=/linuxrc" -nographic -sd rootfs.ext2
-qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb -nographic -sd rootfs.img -append "root=/dev/mmcblk0 console=ttyAMA0 init=/linuxrc"
+qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb -nographic -sd rootfs_ext4.img -append "root=/dev/mmcblk0 console=ttyAMA0 init=/linuxrc"
