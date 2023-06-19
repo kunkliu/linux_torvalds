@@ -473,6 +473,8 @@ int of_platform_populate(struct device_node *root,
 	struct device_node *child;
 	int rc = 0;
 
+	printk("liukun [%d %s %s]\n", __LINE__, __FILE__, __func__);
+	dump_stack();
 	root = root ? of_node_get(root) : of_find_node_by_path("/");
 	if (!root)
 		return -EINVAL;

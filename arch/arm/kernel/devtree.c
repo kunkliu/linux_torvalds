@@ -219,8 +219,10 @@ const struct machine_desc * __init setup_machine_fdt(unsigned int dt_phys)
 	MACHINE_END
 
 	mdesc_best = &__mach_desc_GENERIC_DT;
+	printk("liukun1 [%s %s %d] mdesc_best = 0x%px\n", __FILE__, __func__, __LINE__, mdesc_best);
+	
 #endif
-
+	printk("liukun1 [%s %s %d] dt_phys_virt = 0x%px\n", __FILE__, __func__, __LINE__, phys_to_virt(dt_phys));
 	if (!dt_phys || !early_init_dt_verify(phys_to_virt(dt_phys)))
 		return NULL;
 

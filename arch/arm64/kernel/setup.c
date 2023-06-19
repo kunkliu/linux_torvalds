@@ -173,7 +173,7 @@ static void __init setup_machine_fdt(phys_addr_t dt_phys)
 	int size;
 	void *dt_virt = fixmap_remap_fdt(dt_phys, &size, PAGE_KERNEL);
 	const char *name;
-
+	printk("liukun1 [%s %s %d] dt_virt = 0x%p\n", __FILE__, __func__, __LINE__, dt_virt);
 	if (dt_virt)
 		memblock_reserve(dt_phys, size);
 

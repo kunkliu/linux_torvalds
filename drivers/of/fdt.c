@@ -794,6 +794,7 @@ const char * __init of_flat_dt_get_machine_name(void)
 	unsigned long dt_root = of_get_flat_dt_root();
 
 	name = of_get_flat_dt_prop(dt_root, "model", NULL);
+	printk("liukun1 [%s %s %d] compatible = %s\n", __FILE__, __func__, __LINE__, of_get_flat_dt_prop(dt_root, "compatible", NULL));
 	if (!name)
 		name = of_get_flat_dt_prop(dt_root, "compatible", NULL);
 	return name;
@@ -818,6 +819,7 @@ const void * __init of_flat_dt_match_machine(const void *default_match,
 	unsigned int best_score = ~1, score = 0;
 
 	dt_root = of_get_flat_dt_root();
+	printk("liukun1 [%s %s %d] dt_root = 0x%llx\n", __FILE__, __func__, __LINE__, dt_root);
 	while ((data = get_next_compat(&compat))) {
 		score = of_flat_dt_match(dt_root, compat);
 		if (score > 0 && score < best_score) {
@@ -844,7 +846,7 @@ const void * __init of_flat_dt_match_machine(const void *default_match,
 	}
 
 	pr_info("Machine model: %s\n", of_flat_dt_get_machine_name());
-
+	printk("liukun1 [%s %s %d] best_data = 0x%px\n", __FILE__, __func__, __LINE__, best_data);
 	return best_data;
 }
 
@@ -1176,6 +1178,7 @@ bool __init early_init_dt_verify(void *params)
 
 	/* Setup flat device-tree pointer */
 	initial_boot_params = params;
+	printk("liukun1 [%s %s %d] initial_boot_params = 0x%px\n", __FILE__, __func__, __LINE__, initial_boot_params);
 	of_fdt_crc32 = crc32_be(~0, initial_boot_params,
 				fdt_totalsize(initial_boot_params));
 	return true;
