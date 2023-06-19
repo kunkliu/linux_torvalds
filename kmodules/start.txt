@@ -102,6 +102,7 @@ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm -j16
 #busybox 编译
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
+
 make menuconfig
 #Setting --->
 #     [*] Build static binary(no shared libs)
