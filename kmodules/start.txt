@@ -133,5 +133,5 @@ qemu-system-arm -M vexpress-a9 -m 512M -kernel zImage -dtb vexpress-v2p-ca9.dtb 
 
 #######################################
 # 调试命令
-printk("liukun1 [%s %s %d] __atags_pointer = 0x%x\n", __FILE__, __func__, __LINE__, __atags_pointer);
+printk("liukun1 [%d %s %s] \n", __LINE__, __FILE__, __func__);
 

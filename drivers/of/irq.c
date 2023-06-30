@@ -13,7 +13,7 @@
  * device tree to actual irq numbers on an interrupt controller
  * driver.
  */
-
+#define DEBUG
 #define pr_fmt(fmt)	"OF: " fmt
 
 #include <linux/device.h>
@@ -39,7 +39,7 @@ unsigned int irq_of_parse_and_map(struct device_node *dev, int index)
 
 	if (of_irq_parse_one(dev, index, &oirq))
 		return 0;
-
+	printk("liukun1 [%s %s %d] \n", __FILE__, __func__, __LINE__);
 	return irq_create_of_mapping(&oirq);
 }
 EXPORT_SYMBOL_GPL(irq_of_parse_and_map);
@@ -309,7 +309,8 @@ int of_irq_parse_one(struct device_node *device, int index, struct of_phandle_ar
 	p = of_irq_find_parent(device);
 	if (p == NULL)
 		return -EINVAL;
-
+	printk("liukun1 [%d %s %s] name = %s\n", __LINE__,__FILE__, __func__, p->name);
+	printk("liukun1 [%d %s %s] fullname = %s\n", __LINE__,__FILE__, __func__, p->full_name);
 	/* Get size of interrupt specifier */
 	if (of_property_read_u32(p, "#interrupt-cells", &intsize)) {
 		res = -EINVAL;
@@ -319,7 +320,7 @@ int of_irq_parse_one(struct device_node *device, int index, struct of_phandle_ar
 	pr_debug(" parent=%pOF, intsize=%d\n", p, intsize);
 
 	/* Copy intspec into irq structure */
-	out_irq->np = p;
+	out_irq->np = p;		/* out_irq 为需要带出去的参数 */
 	out_irq->args_count = intsize;
 	for (i = 0; i < intsize; i++) {
 		res = of_property_read_u32_index(device, "interrupts",

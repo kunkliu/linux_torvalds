@@ -226,15 +226,17 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
 	int i, ret;
 
 	pr_debug("Creating amba device %pOF\n", node);
+	printk("liukun1 Creating amba device %pOF\n", node);
 
 	if (!of_device_is_available(node) ||
 	    of_node_test_and_set_flag(node, OF_POPULATED))
 		return NULL;
 
-	dev = amba_device_alloc(NULL, 0, 0);
+	dev = amba_device_alloc(NULL, 0, 0);	/* 申请 amba_device */
 	if (!dev)
 		goto err_clear_flag;
-
+	
+	/* 设置dev 基本信息 */
 	/* AMBA devices only support a single DMA mask */
 	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
 	dev->dev.dma_mask = &dev->dev.coherent_dma_mask;
@@ -255,8 +257,8 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
 		dev->periphid = of_read_ulong(prop, 1);
 
 	/* Decode the IRQs and address ranges */
-	for (i = 0; i < AMBA_NR_IRQS; i++)
-		dev->irq[i] = irq_of_parse_and_map(node, i);
+	for (i = 0; i < AMBA_NR_IRQS; i++)		/* 为什么有8个？？ */
+		dev->irq[i] = irq_of_parse_and_map(node, i);	/* 解析 irq 设备树 */
 
 	ret = of_address_to_resource(node, 0, &dev->res);
 	if (ret) {
@@ -355,6 +357,8 @@ static int of_platform_bus_create(struct device_node *bus,
 	void *platform_data = NULL;
 	int rc = 0;
 
+	// printk("liukun1 [%s %s %d] \n", __FILE__, __func__, __LINE__);
+
 	/* Make sure it has a compatible property */
 	if (strict && (!of_get_property(bus, "compatible", NULL))) {
 		pr_debug("%s() - skipping %pOF, no compatible prop\n",
@@ -385,7 +389,9 @@ static int of_platform_bus_create(struct device_node *bus,
 		 * Don't return an error here to keep compatibility with older
 		 * device tree files.
 		 */
+		printk("liukun1 [%s %s %d] of_amba_device_create\n", __FILE__, __func__, __LINE__);
 		of_amba_device_create(bus, bus_id, platform_data, parent);
+		
 		return 0;
 	}
 
@@ -427,6 +433,7 @@ int of_platform_bus_probe(struct device_node *root,
 
 	pr_debug("%s()\n", __func__);
 	pr_debug(" starting at: %pOF\n", root);
+	printk("liukun1 [%s %s %d] \n", __FILE__, __func__, __LINE__);
 
 	/* Do a self check of bus type, if there's a match, create children */
 	if (of_match_node(matches, root)) {
@@ -473,14 +480,15 @@ int of_platform_populate(struct device_node *root,
 	struct device_node *child;
 	int rc = 0;
 
-	printk("liukun [%d %s %s]\n", __LINE__, __FILE__, __func__);
-	dump_stack();
+	printk("liukun1 [%d %s %s]\n", __LINE__, __FILE__, __func__);
+	// dump_stack();
 	root = root ? of_node_get(root) : of_find_node_by_path("/");
 	if (!root)
 		return -EINVAL;
 
 	pr_debug("%s()\n", __func__);
 	pr_debug(" starting at: %pOF\n", root);
+	printk("liukun1 [%d %s %s] fullname = %s\n", __LINE__, __FILE__, __func__, root->full_name);
 
 	device_links_supplier_sync_state_pause();
 	for_each_child_of_node(root, child) {

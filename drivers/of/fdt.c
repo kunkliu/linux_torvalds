@@ -6,6 +6,7 @@
  * benh@kernel.crashing.org
  */
 
+#define DEBUG
 #define pr_fmt(fmt)	"OF: fdt: " fmt
 
 #include <linux/crc32.h>
@@ -374,6 +375,7 @@ void *__unflatten_device_tree(const void *blob,
 	void *mem;
 
 	pr_debug(" -> unflatten_device_tree()\n");
+	printk("liukun1 [%s %s %d]\n", __FILE__, __func__, __LINE__);
 
 	if (!blob) {
 		pr_debug("No device tree pointer\n");
